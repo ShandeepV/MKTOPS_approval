@@ -1,0 +1,14 @@
+{
+  "name": "mkt-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Single-folder local run of the MKT CNBL/PNBL Approval app (backend + frontend).",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix mkt-backend && npm install --prefix mkt-frontend",
+    "dev": "concurrently -n BACKEND,FRONTEND -c blue,green \"npm run dev --prefix mkt-backend\" \"npm run dev --prefix mkt-frontend\"",
+    "seed:passwords": "npm run seed:passwords --prefix mkt-backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

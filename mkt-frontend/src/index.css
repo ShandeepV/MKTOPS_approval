@@ -1,0 +1,124 @@
+* {
+  margin: 0;
+  /* padding: 0 !important; */
+}
+body {
+  background-color: #f8fafc !important;
+  font-family: "Inter", sans-serif !important;
+}
+a {
+  text-decoration: none !important;
+  color: white !important;
+}
+.d-flex {
+  display: flex !important;
+  align-items: center !important;
+}
+.flex-center {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+.flex-between {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+/* styles.css */
+.ant-table-thead > tr > th {
+  background-color: #1677ff !important; /* AntD primary blue */
+  color: #fff !important;
+  font-weight: 600;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.ant-table table {
+  width: 100% !important;
+  table-layout: fixed;
+}
+
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  padding: 6px 8px !important;
+  font-size: 12px;
+}
+
+.ant-table-tbody > tr > td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ant-table-tbody > tr > td.request-action-cell {
+  overflow: visible !important;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- */
+/* Lightweight motion: page transitions + interactive hover feedback */
+/* ---------------------------------------------------------------- */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Re-triggered on every route change (see AppLayout.jsx, which keys this
+   wrapper by the current pathname) */
+.page-transition {
+  animation: pageFadeIn 0.35s ease both;
+}
+
+/* Buttons lift slightly on hover instead of just changing color */
+.ant-btn {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease !important;
+}
+.ant-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.ant-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Cards gain a soft shadow on hover */
+.ant-card {
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+.ant-card:hover {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+}
+
+/* Table rows highlight a touch more deliberately */
+.ant-table-tbody > tr > td {
+  transition: background-color 0.15s ease;
+}
+
+/* Tabs underline/color shifts smoothly */
+.ant-tabs-tab {
+  transition: color 0.2s ease;
+}
+
+/* Modals/pop-ups ease in rather than snapping open */
+.ant-modal-content,
+.ant-select-dropdown,
+.ant-picker-dropdown {
+  animation: pageFadeIn 0.2s ease both;
+}
+
+/* Icons used as clickable actions (eye/edit/delete) get a tiny hover pop */
+.anticon {
+  transition: transform 0.15s ease;
+}
+.ant-table-tbody .anticon:hover {
+  transform: scale(1.15);
+}

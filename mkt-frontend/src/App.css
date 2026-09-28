@@ -1,0 +1,9 @@
+.ant-table-thead > tr > th {
+  white-space: nowrap;
+}
+/* styles.css */
+.ant-table-thead > tr > th {
+  background-color: #1677ff !important; /* AntD primary blue */
+  color: #fff !important;
+  font-weight: 600;
+}
