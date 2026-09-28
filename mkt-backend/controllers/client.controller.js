@@ -34,6 +34,51 @@ export const createClient = async (req, res) => {
   }
 };
 
+export const bulkCreateClients = async (req, res) => {
+  const suppliedNames = req.body?.names;
+  if (!Array.isArray(suppliedNames) || suppliedNames.length === 0) {
+    return res.status(400).json({ message: "Client names are required" });
+  }
+  if (suppliedNames.length > 1000) {
+    return res.status(400).json({ message: "Import is limited to 1000 rows" });
+  }
+
+  const names = suppliedNames
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean);
+  if (names.some((name) => name.length > 100)) {
+    return res.status(400).json({ message: "Client names must be 100 characters or fewer" });
+  }
+  if (names.length === 0) {
+    return res.status(400).json({ message: "No client names found in the import" });
+  }
+
+  try {
+    const uniqueNames = [...new Map(names.map((name) => [name.toLowerCase(), name])).values()];
+    const result = await Client.bulkWrite(
+      uniqueNames.map((name) => ({
+        updateOne: {
+          filter: { normalized_name: name.toLowerCase() },
+          update: { $setOnInsert: { name, normalized_name: name.toLowerCase() } },
+          upsert: true,
+        },
+      })),
+      { ordered: false },
+    );
+    const created = result.upsertedCount;
+    res.status(200).json({
+      success: true,
+      data: {
+        created,
+        duplicates: names.length - created,
+        ignored: suppliedNames.length - names.length,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 export const deleteClient = async (req, res) => {
   try {
     const deleted = await Client.findByIdAndDelete(req.body.id);

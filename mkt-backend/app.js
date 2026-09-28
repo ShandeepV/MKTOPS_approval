@@ -13,10 +13,18 @@ dotenv.config();
 const app = express();
 connectDB();
 
-// app.use(cors());
+const allowedOrigins = new Set(
+  (process.env.CORS_ORIGINS || "http://localhost:5173,https://mktops.netlify.app")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+
 app.use(
   cors({
-    origin: "*", // later restrict to your Netlify URL
+    origin(origin, callback) {
+      callback(null, !origin || allowedOrigins.has(origin));
+    },
   }),
 );
 // app.options("*", cors());

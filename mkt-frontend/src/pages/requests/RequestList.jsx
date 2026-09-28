@@ -210,7 +210,7 @@ const RequestList = () => {
       align: "center",
       render: (_, record) => getStatusTag(
         record.finance_status,
-        false,
+        Boolean(record.finance_revised_start_date && record.finance_revised_end_date),
       ),
     },
     {
@@ -447,7 +447,7 @@ const RequestList = () => {
             <Descriptions.Item label="Finance Status">
               {getStatusTag(
                 detailsRecord.finance_status,
-                false,
+                Boolean(detailsRecord.finance_revised_start_date && detailsRecord.finance_revised_end_date),
               )}
             </Descriptions.Item>
             <Descriptions.Item label="Finance Reason">

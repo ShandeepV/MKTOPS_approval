@@ -31,6 +31,7 @@ import {
   updateBGV,
 } from "../controllers/bgv.controller.js";
 import {
+  bulkCreateClients,
   createClient,
   deleteClient,
   getClients,
@@ -65,6 +66,7 @@ userRouter.post("/delete-bgv", requireRoles("admin", "super_admin"), deleteBGV);
 
 userRouter.get("/get-clients", requireRoles("user", "admin", "super_admin"), getClients);
 userRouter.post("/create-client", requireRoles("admin", "super_admin"), createClient);
+userRouter.post("/bulk-create-clients", requireRoles("admin", "super_admin"), bulkCreateClients);
 userRouter.post("/delete-client", requireRoles("admin", "super_admin"), deleteClient);
 
 userRouter.post("/create-user", requireRoles("admin", "super_admin"), createUser);

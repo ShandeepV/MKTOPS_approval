@@ -184,8 +184,11 @@ export const login = async (req, res) => {
     const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "superadmin@ascendion.com")
       .trim()
       .toLowerCase();
-    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || "12345";
     if (email === superAdminEmail) {
+      const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD;
+      if (!superAdminPassword) {
+        return res.status(503).json({ message: "Super Admin login is not configured" });
+      }
       if (password !== superAdminPassword) {
         return res.status(401).json({ message: "Invalid email or password" });
       }

@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: mkt-backend-cloud
+    runtime: node
+    plan: free
+    rootDir: mkt-backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /check
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://mktops.netlify.app
+      - key: BASE_URL
+        value: https://mktops.netlify.app

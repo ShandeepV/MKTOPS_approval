@@ -246,7 +246,7 @@ const MyRequestFinance = () => {
     { title: "Proposed Project", dataIndex: "project", align: "center", width: 110 },
     { title: "Current Dates", align: "center", width: 150, render: (_, record) => `${dayjs(record.startDate).format("DD MMM YYYY")} - ${dayjs(record.endDate).format("DD MMM YYYY")}` },
     { title: "RMG Status", dataIndex: "rmg_status", align: "center", width: 88, render: (_, record) => statusTag(record.rmg_status, Boolean(record.rmg_revised_start_date && record.rmg_revised_end_date)) },
-    { title: "Finance Status", dataIndex: "finance_status", align: "center", width: 88, render: (status) => statusTag(status) },
+    { title: "Finance Status", dataIndex: "finance_status", align: "center", width: 88, render: (_, record) => statusTag(record.finance_status, Boolean(record.finance_revised_start_date && record.finance_revised_end_date)) },
     {
       title: "View",
       align: "center",
@@ -277,7 +277,7 @@ const MyRequestFinance = () => {
             Deny
           </Button>
         </Space>
-      ) : statusTag(record.finance_status),
+      ) : statusTag(record.finance_status, Boolean(record.finance_revised_start_date && record.finance_revised_end_date)),
     },
   ];
 
@@ -484,7 +484,7 @@ const MyRequestFinance = () => {
             <Descriptions.Item label="Finance Status">
               {statusTag(
                 detailsRecord.finance_status,
-                false,
+                Boolean(detailsRecord.finance_revised_start_date && detailsRecord.finance_revised_end_date),
               )}
             </Descriptions.Item>
             <Descriptions.Item label="RMG Revised Dates">
