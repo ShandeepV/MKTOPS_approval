@@ -32,11 +32,13 @@ const { Option } = Select;
 
 // A small helper so a possibly-missing date pair renders as "-" instead of
 // an empty/odd string, and a present pair renders compactly on one line —
-// this is what backs the new "Applied Dates" / "RMG Revised" / "Finance
+// this is what backs the new "Proposed Dates" / "RMG Revised" / "Finance
 // Revised" columns.
 const formatDateRange = (start, end) => {
-  if (!start || !end) return "-";
-  return `${dayjs(start).format("DD MMM YYYY")} → ${dayjs(end).format("DD MMM YYYY")}`;
+  if (!start || !end || !dayjs(start).isValid() || !dayjs(end).isValid()) {
+    return "-";
+  }
+  return `${dayjs(start).format("DD MMM YYYY")} - ${dayjs(end).format("DD MMM YYYY")}`;
 };
 
 const MyRequestList = () => {
@@ -196,7 +198,7 @@ const MyRequestList = () => {
   // ✅ Reworked columns:
   // - GCID / Name are now in the open table (were previously eye-icon-only)
   // - Project Type moved OUT of the open table, into the Details modal only
-  // - Applied Dates (what was originally submitted) is always shown
+  // - Proposed Dates (what was originally submitted) is always shown
   // - RMG Revised dates stay visible; Finance date fields are omitted
   const columns = [
     { title: "UID", dataIndex: "uid", align: "center", render: (value) => value || "-" },
@@ -221,10 +223,13 @@ const MyRequestList = () => {
       align: "center",
     },
     {
-      title: "Applied Dates",
+      title: "Proposed Dates",
       align: "center",
       render: (_, record) =>
-        formatDateRange(record.applied_start_date, record.applied_end_date),
+        formatDateRange(
+          record.applied_start_date || record.start_date,
+          record.applied_end_date || record.end_date
+        ),
     },
     {
       title: "Days",
@@ -247,6 +252,15 @@ const MyRequestList = () => {
         formatDateRange(
           record.rmg_revised_start_date,
           record.rmg_revised_end_date
+        ),
+    },
+    {
+      title: "Finance Revised Dates",
+      align: "center",
+      render: (_, record) =>
+        formatDateRange(
+          record.finance_revised_start_date,
+          record.finance_revised_end_date
         ),
     },
     {
@@ -393,16 +407,10 @@ const MyRequestList = () => {
             <Descriptions.Item label="Resource Location">
               {detailsRecord.resource_location || "-"}
             </Descriptions.Item>
-            <Descriptions.Item label="Applied Dates">
+            <Descriptions.Item label="Proposed Dates">
               {formatDateRange(
-                detailsRecord.applied_start_date,
-                detailsRecord.applied_end_date
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Current Dates">
-              {formatDateRange(
-                detailsRecord.start_date,
-                detailsRecord.end_date
+                detailsRecord.applied_start_date || detailsRecord.start_date,
+                detailsRecord.applied_end_date || detailsRecord.end_date
               )}
             </Descriptions.Item>
             <Descriptions.Item label="Days">
@@ -429,6 +437,11 @@ const MyRequestList = () => {
                 detailsRecord.rmg_revised_end_date
               )}
             </Descriptions.Item>
+            <Descriptions.Item label="RMG Reviewed Date">
+              {detailsRecord.rmg_action_at
+                ? dayjs(detailsRecord.rmg_action_at).format("DD MMM YYYY HH:mm")
+                : "-"}
+            </Descriptions.Item>
             <Descriptions.Item label="RMG Reason">
               {detailsRecord.rmg_reason || "-"}
             </Descriptions.Item>
@@ -441,9 +454,21 @@ const MyRequestList = () => {
             <Descriptions.Item label="Finance Reason">
               {detailsRecord.finance_reason || "-"}
             </Descriptions.Item>
+            <Descriptions.Item label="Finance Revised Dates">
+              {formatDateRange(
+                detailsRecord.finance_revised_start_date,
+                detailsRecord.finance_revised_end_date
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Finance Reviewed Date">
+              {detailsRecord.finance_action_at
+                ? dayjs(detailsRecord.finance_action_at).format("DD MMM YYYY HH:mm")
+                : "-"}
+            </Descriptions.Item>
             <Descriptions.Item label="Attachment" span={2}>
               {attachmentUrl(detailsRecord.attachment) ? (
                 <a
+                  className="request-attachment-link"
                   href={attachmentUrl(detailsRecord.attachment)}
                   target="_blank"
                   rel="noreferrer"

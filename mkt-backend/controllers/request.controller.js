@@ -21,8 +21,14 @@ export const createRequest = async (req, res) => {
     if (!emailPattern.test(senderEmail)) {
       return res.status(400).json({ message: "A valid sender email is required" });
     }
+    if (data.resource_location === "On-Shore" && recipients.length === 0) {
+      return res.status(400).json({ message: "At least one notification email is required for On-Shore requests" });
+    }
     if (recipients.some((email) => !emailPattern.test(email))) {
       return res.status(400).json({ message: "Enter valid notification email addresses" });
+    }
+    if (!String(data.remarks || "").trim()) {
+      return res.status(400).json({ message: "Remarks are required" });
     }
 
     const duplicateFields = {

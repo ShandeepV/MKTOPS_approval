@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 
 const uploadDir = path.join(process.cwd(), "uploads");
-const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024 - 1;
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
 const allowedMimeTypesByExtension = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -48,7 +48,7 @@ export const uploadRequestAttachment = (req, res, next) => {
     if (!error) return next();
 
     if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
-      return res.status(413).json({ message: "Attachment must be smaller than 2 MB" });
+      return res.status(413).json({ message: "Attachment must be 2 MB or smaller" });
     }
     return res.status(400).json({ message: error.message });
   });

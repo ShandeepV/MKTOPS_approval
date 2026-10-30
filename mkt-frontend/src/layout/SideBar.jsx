@@ -25,7 +25,7 @@ const sideBarList = [
     key: "/admin-access",
     icon: <AppstoreOutlined />,
     label: "Admin Access",
-    roles: ["admin", "super_admin"],
+    roles: ["admin"],
   },
   {
     key: "/requests",

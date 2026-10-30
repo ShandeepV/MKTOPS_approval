@@ -29,6 +29,13 @@ import { exportRowsToExcel, buildRequestExportRows } from "../../utils/exportExc
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
+const formatDateRange = (start, end) => {
+  if (!start || !end || !dayjs(start).isValid() || !dayjs(end).isValid()) {
+    return "-";
+  }
+  return `${dayjs(start).format("DD MMM YYYY")} - ${dayjs(end).format("DD MMM YYYY")}`;
+};
+
 const statusTag = (status, revised = false) => {
   if (status === 1)
     return (
@@ -237,7 +244,15 @@ const MyRequestTmg = () => {
     { title: "Name", dataIndex: "name", align: "center", width: 100 },
     { title: "Proposed Client", dataIndex: "client", align: "center", width: 110 },
     { title: "Proposed Project", dataIndex: "project", align: "center", width: 110 },
-    { title: "Current Dates", align: "center", width: 150, render: (_, record) => `${dayjs(record.startDate).format("DD MMM YYYY")} - ${dayjs(record.endDate).format("DD MMM YYYY")}` },
+    {
+      title: "Proposed Dates",
+      align: "center",
+      width: 180,
+      render: (_, record) => formatDateRange(
+        record.applied_start_date || record.startDate,
+        record.applied_end_date || record.endDate,
+      ),
+    },
     { title: "RMG Status", dataIndex: "rmg_status", align: "center", width: 88, render: (_, record) => statusTag(record.rmg_status, Boolean(record.rmg_revised_start_date && record.rmg_revised_end_date)) },
     { title: "Finance Status", dataIndex: "finance_status", align: "center", width: 88, render: (_, record) => statusTag(record.finance_status, Boolean(record.finance_revised_start_date && record.finance_revised_end_date)) },
     {
@@ -261,7 +276,7 @@ const MyRequestTmg = () => {
       render: (_, record) => record.rmg_status === 0 ? (
         <Space size={4} wrap={false}>
           <Button size="small" type="primary" onClick={() => openModal(record, 1, "approve_note")}>
-            Approved
+            Approve
           </Button>
           <Button size="small" icon={<CalendarOutlined />} onClick={() => openModal(record, 1, "duration")}>
             Duration Change
@@ -352,7 +367,7 @@ const MyRequestTmg = () => {
               loading={submitting}
               onClick={() => setApproveStep("approve_note")}
             >
-              Approved
+              Approve
             </Button>
             <Button
               size="large"
@@ -419,7 +434,43 @@ const MyRequestTmg = () => {
       <Modal
         open={!!detailsRecord}
         onCancel={() => setDetailsRecord(null)}
-        footer={null}
+        footer={
+          detailsRecord?.rmg_status === 0 ? (
+            <Space>
+              <Button
+                danger
+                onClick={() => {
+                  const record = detailsRecord;
+                  setDetailsRecord(null);
+                  openModal(record, 2);
+                }}
+              >
+                Deny
+              </Button>
+              <Button
+                icon={<CalendarOutlined />}
+                onClick={() => {
+                  const record = detailsRecord;
+                  setDetailsRecord(null);
+                  openModal(record, 1, "duration");
+                }}
+              >
+                Revise Dates
+              </Button>
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                onClick={() => {
+                  const record = detailsRecord;
+                  setDetailsRecord(null);
+                  openModal(record, 1, "approve_note");
+                }}
+              >
+                Approve
+              </Button>
+            </Space>
+          ) : null
+        }
         title="Request Details"
         width={720}
       >
@@ -429,8 +480,13 @@ const MyRequestTmg = () => {
             <Descriptions.Item label="Request Date & Time">
               {detailsRecord.createdAt ? dayjs(detailsRecord.createdAt).format("DD MMM YYYY HH:mm") : "-"}
             </Descriptions.Item>
-            <Descriptions.Item label="Approval E-mail ID">
+            <Descriptions.Item label="EMAIL TO BE CC'd">
               {detailsRecord.receiver_emails || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Requestor" span={2}>
+              <span style={{ whiteSpace: "nowrap" }}>
+                {detailsRecord.requestor_email || "-"}
+              </span>
             </Descriptions.Item>
             <Descriptions.Item label="GCID">{detailsRecord.emp_id}</Descriptions.Item>
             <Descriptions.Item label="Name">{detailsRecord.name}</Descriptions.Item>
@@ -452,47 +508,54 @@ const MyRequestTmg = () => {
             <Descriptions.Item label="Resource Type">
               {detailsRecord.resource_type}
             </Descriptions.Item>
-            <Descriptions.Item label="Start Date">
-              {dayjs(detailsRecord.start_date).format("DD MMM YYYY")}
-            </Descriptions.Item>
-            <Descriptions.Item label="End Date">
-              {dayjs(detailsRecord.end_date).format("DD MMM YYYY")}
+            <Descriptions.Item label="Proposed Dates">
+              {formatDateRange(
+                detailsRecord.applied_start_date || detailsRecord.start_date,
+                detailsRecord.applied_end_date || detailsRecord.end_date,
+              )}
             </Descriptions.Item>
             <Descriptions.Item label="Days">
               {detailsRecord.no_of_days}
             </Descriptions.Item>
-            <Descriptions.Item label="RMG Status">
-              {statusTag(
-                detailsRecord.rmg_status,
-                Boolean(detailsRecord.rmg_revised_start_date && detailsRecord.rmg_revised_end_date),
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="RMG Date">
-              {detailsRecord.rmg_action_at ? dayjs(detailsRecord.rmg_action_at).format("DD MMM YYYY HH:mm") : "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="RMG Revised Dates">
-              {detailsRecord.rmg_revised_start_date && detailsRecord.rmg_revised_end_date
-                ? `${dayjs(detailsRecord.rmg_revised_start_date).format("DD MMM YYYY")} - ${dayjs(detailsRecord.rmg_revised_end_date).format("DD MMM YYYY")}`
-                : "-"}
+            <Descriptions.Item label="Approval Details" span={2}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+                <Descriptions bordered column={1} size="small" title="RMG">
+                  <Descriptions.Item label="Status">
+                    {statusTag(detailsRecord.rmg_status, Boolean(detailsRecord.rmg_revised_start_date && detailsRecord.rmg_revised_end_date))}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Revised Dates">
+                    {formatDateRange(detailsRecord.rmg_revised_start_date, detailsRecord.rmg_revised_end_date)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Reason">
+                    {detailsRecord.rmg_reason || "-"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Reviewed Date">
+                    {detailsRecord.rmg_action_at ? dayjs(detailsRecord.rmg_action_at).format("DD MMM YYYY HH:mm") : "-"}
+                  </Descriptions.Item>
+                </Descriptions>
+                <Descriptions bordered column={1} size="small" title="Finance">
+                  <Descriptions.Item label="Status">
+                    {statusTag(detailsRecord.finance_status, Boolean(detailsRecord.finance_revised_start_date && detailsRecord.finance_revised_end_date))}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Revised Dates">
+                    {formatDateRange(detailsRecord.finance_revised_start_date, detailsRecord.finance_revised_end_date)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Reason">
+                    {detailsRecord.finance_reason || "-"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Reviewed Date">
+                    {detailsRecord.finance_action_at ? dayjs(detailsRecord.finance_action_at).format("DD MMM YYYY HH:mm") : "-"}
+                  </Descriptions.Item>
+                </Descriptions>
+              </div>
             </Descriptions.Item>
             <Descriptions.Item label="MKT OPS Remarks" span={2}>
               {detailsRecord.remarks || "-"}
             </Descriptions.Item>
-            <Descriptions.Item label="RMG Reason" span={2}>
-              {detailsRecord.rmg_reason || "-"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Finance Status">
-              {statusTag(
-                detailsRecord.finance_status,
-                Boolean(detailsRecord.finance_revised_start_date && detailsRecord.finance_revised_end_date),
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Finance Reason">
-              {detailsRecord.finance_reason || "-"}
-            </Descriptions.Item>
             <Descriptions.Item label="Attachment" span={2}>
               {attachmentUrl(detailsRecord.attachment) ? (
                 <a
+                  className="request-attachment-link"
                   href={attachmentUrl(detailsRecord.attachment)}
                   target="_blank"
                   rel="noreferrer"

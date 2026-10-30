@@ -44,6 +44,10 @@ const formatDateTime = (value) =>
   value && dayjs(value).isValid() ? dayjs(value).format("DD MMM YYYY HH:mm") : "";
 const formatDate = (value) =>
   value && dayjs(value).isValid() ? dayjs(value).format("DD MMM YYYY") : "";
+const formatDateRange = (start, end) =>
+  start && end && dayjs(start).isValid() && dayjs(end).isValid()
+    ? `${formatDate(start)} - ${formatDate(end)}`
+    : "";
 
 /** Shared row-shaping for the RMG/Finance request records. */
 export const buildRequestExportRows = (records = []) =>
@@ -58,22 +62,29 @@ export const buildRequestExportRows = (records = []) =>
     "Proposed Project": r.proposed_project,
     "Project Type": r.project_type,
     "Resource Type": r.resource_type,
-    "Start Date": r.start_date ? dayjs(r.start_date).format("DD MMM YYYY") : "",
-    "End Date": r.end_date ? dayjs(r.end_date).format("DD MMM YYYY") : "",
-    "Applied Start Date": formatDate(r.applied_start_date),
-    "Applied End Date": formatDate(r.applied_end_date),
+    "Proposed Dates": formatDateRange(
+      r.applied_start_date || r.start_date,
+      r.applied_end_date || r.end_date,
+    ),
     Days: r.no_of_days,
     Remarks: r.remarks || "",
     "RMG Status": ["Pending", "Approved", "Denied"][r.rmg_status] || "",
     "RMG Approved Date & Time": r.rmg_status === 1 ? formatDateTime(r.rmg_action_at) : "",
     "RMG Action Date & Time": formatDateTime(r.rmg_action_at),
-    "RMG Revised Start Date": formatDateTime(r.rmg_revised_start_date),
-    "RMG Revised End Date": formatDateTime(r.rmg_revised_end_date),
+    "RMG Revised Dates": formatDateRange(
+      r.rmg_revised_start_date,
+      r.rmg_revised_end_date,
+    ),
     "RMG Reason": r.rmg_reason || "",
     "Finance Status": ["Pending", "Approved", "Denied"][r.finance_status] || "",
+    "Finance Action Date & Time": formatDateTime(r.finance_action_at),
+    "Finance Revised Dates": formatDateRange(
+      r.finance_revised_start_date,
+      r.finance_revised_end_date,
+    ),
     "Finance Reason": r.finance_reason || "",
-    "Approval E-mail ID": r.receiver_emails || "",
-    "Requested By": r.requestor_email || "",
+    "EMAIL TO BE CC'd": r.receiver_emails || "",
+    Requestor: r.requestor_email || "",
   }));
 
 /** Shared row-shaping for BGV records. */

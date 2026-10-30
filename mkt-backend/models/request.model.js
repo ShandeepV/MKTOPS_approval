@@ -114,7 +114,7 @@ const requestSchema = new mongoose.Schema(
     },
     receiver_emails: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
     },
 

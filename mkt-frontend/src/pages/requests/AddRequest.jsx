@@ -25,6 +25,10 @@ const projectTypeOptions = [
   { value: "PNBL" },
   { value: "KT & Investment" },
 ];
+const offshoreProjectTypeOptions = [
+  ...projectTypeOptions,
+  { value: "ELT(cost holiday)" },
+];
 
 const resourceTypeOptions = {
   "On-Shore": ["FTE", "Consultant"],
@@ -93,10 +97,11 @@ const AddRequest = () => {
     setResourceLocation(value);
     form.setFieldsValue({
       resource_type: undefined,
+      project_type: undefined,
     });
   };
 
-  // Validate entered notification emails; the list may be empty.
+  // Validate entered notification emails.
   const validateNotifyEmails = (_, value) => {
     const parts = (Array.isArray(value) ? value : String(value || "").split(/[;,]/))
       .map((e) => e.trim())
@@ -113,8 +118,8 @@ const AddRequest = () => {
 
   const validateAttachment = (file) => {
     const extension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
-    if (file.size >= MAX_ATTACHMENT_BYTES) {
-      message.error("Attachment must be smaller than 2 MB");
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      message.error("Attachment must be 2 MB or smaller");
       return Upload.LIST_IGNORE;
     }
     if (attachmentMimeTypes[extension] !== file.type) {
@@ -225,27 +230,6 @@ const AddRequest = () => {
           </Col>
         </Row>
 
-        {resourceLocation && (
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item
-                label={resourceLocation === "On-Shore" ? "Approval E-mail IDs (optional)" : "Receiver E-mail IDs (optional)"}
-                name="receiver_emails"
-                rules={[{ validator: validateNotifyEmails }]}
-                extra="Optional. Enter an address and press Enter; repeat for more recipients."
-              >
-                <Select
-                  mode="tags"
-                  tokenSeparators={[";", ","]}
-                  placeholder="Type an email address and press Enter"
-                  maxTagCount="responsive"
-                  allowClear
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-        )}
-
         {/* Everything below is only usable once On-Shore / Off-Shore has
             been chosen above — until then there's nothing to fill in. */}
         {resourceLocation && (
@@ -352,7 +336,11 @@ const AddRequest = () => {
                   rules={[{ required: true, message: "Select Project Type" }]}
                 >
                   <AutoComplete
-                    options={projectTypeOptions}
+                    options={
+                      resourceLocation === "Off-Shore"
+                        ? offshoreProjectTypeOptions
+                        : projectTypeOptions
+                    }
                     placeholder="Select project type"
                     filterOption={(inputValue, option) =>
                       option.value
@@ -413,8 +401,12 @@ const AddRequest = () => {
             </Form.Item>
 
             {/* Remarks */}
-            <Form.Item label="Remarks" name="remarks">
-              <TextArea rows={3} placeholder="Optional remarks..." />
+            <Form.Item
+              label="Remarks"
+              name="remarks"
+              rules={[{ required: true, whitespace: true, message: "Remarks are required" }]}
+            >
+              <TextArea rows={3} placeholder="Enter remarks" />
             </Form.Item>
             <Form.Item label="Attachment (Optional)">
               <Upload
@@ -426,6 +418,27 @@ const AddRequest = () => {
               >
                 <Button icon={<UploadOutlined />}>Upload File</Button>
               </Upload>
+            </Form.Item>
+
+            <Form.Item
+              label="EMAIL TO BE CC'd"
+              name="receiver_emails"
+              required={resourceLocation === "On-Shore"}
+              rules={[
+                {
+                  required: resourceLocation === "On-Shore",
+                  message: "Enter at least one email address",
+                },
+                { validator: validateNotifyEmails },
+              ]}
+            >
+              <Select
+                mode="tags"
+                tokenSeparators={[";", ","]}
+                placeholder="Type an email address and press Enter"
+                maxTagCount="responsive"
+                allowClear
+              />
             </Form.Item>
           </>
         )}
